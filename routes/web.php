@@ -29,5 +29,9 @@ Route::middleware('auth')->group(function () {
     })->middleware(['auth', 'verified'])->name('dashboard');
     Route::get('/annonces', [AnnonceController::class, 'index'])->name('annonces.index');
 
-
 });
+
+
+Route::get('admin/dashboard', function () {
+    return view('admin.dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
