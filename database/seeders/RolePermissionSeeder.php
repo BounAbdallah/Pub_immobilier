@@ -13,7 +13,7 @@ class RolePermissionSeeder extends Seeder
         $permissions = [
             // Permissions générales
             'gérer les utilisateurs',
-            'creer une livraison',
+            'creer une an',
 
         ];
 

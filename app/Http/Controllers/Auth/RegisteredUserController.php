@@ -23,21 +23,20 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
+     * Handle an incoming client registration request.
      */
     public function createClient(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'nom' => ['required', 'string', 'max:255'],
+            'prenom' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-
-        ],);
+        ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -46,49 +45,74 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('client.dashboard', absolute: false));
+        return redirect()->route('client.dashboard');
     }
 
-
+    /**
+     * Display the admin registration view.
+     */
     public function createAdmin(): View
-{
-    return view('auth.admin.register');
+    {
+        return view('auth.admin.register');
+    }
+
+    /**
+     * Handle an incoming admin registration request.
+     */
+    public function registerAdmin(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'nom' => ['required', 'string', 'max:255'],
+            'prenom' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+        $user->assignRole('Admin');
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    /**
+     * Display the agent registration view.
+     */
+    public function createAgent(): View
+    {
+        return view('auth.agent.register');
+    }
+
+    /**
+     * Handle an incoming agent registration request.
+     */
+    public function registerAgent(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'nom' => ['required', 'string', 'max:255'],
+            'prenom' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+        $user->assignRole('Agent');
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect()->route('agent.dashboard');
+    }
 }
-
-/**
- * Handle an incoming registration request.
- *
- * @throws \Illuminate\Validation\ValidationException
- */
-public function registerAdmin(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-
-    ],);
-
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
-    $user->assignRole('Admin');
-    event(new Registered($user));
-
-    Auth::login($user);
-
-    return redirect(route('admin.dashboard', absolute: false));
-}
-
-}
-
-
-
-
-//
-// public function createClient(Request $request): RedirectResponse
-
-
-
