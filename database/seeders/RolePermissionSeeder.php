@@ -13,8 +13,18 @@ class RolePermissionSeeder extends Seeder
         $permissions = [
             // Permissions générales
             'gérer les utilisateurs',
-            'creer une an',
+            'voir statistiques',
 
+            // Permissions pour les agents
+            'créer une annonce',
+            'modifier une annonce',
+            'supprimer une annonce',
+            'voir les demandes',
+
+            // Permissions pour les clients
+            'voir les annonces',
+            'faire une demande',
+            'contacter un agent',
         ];
 
         // Créer toutes les permissions si elles n'existent pas déjà
@@ -27,25 +37,19 @@ class RolePermissionSeeder extends Seeder
         $roles = [
             'Admin' => [
                 'gérer les utilisateurs',
-
+                'voir statistiques',
             ],
-
-
-
-
-
             'Client' => [
-
-
-
+                'voir les annonces',
+                'faire une demande',
+                'contacter un agent',
             ],
-
             'Agent' => [
-
-
-
+                'créer une annonce',
+                'modifier une annonce',
+                'supprimer une annonce',
+                'voir les demandes',
             ],
-
         ];
 
         // Créer les rôles et leur attribuer les permissions
