@@ -1,24 +1,33 @@
 <?php
 
+// app/Providers/AuthServiceProvider.php
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\Annonce;
+use App\Policies\AnnoncePolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
-class AppServiceProvider extends ServiceProvider
+class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Les politiques (policies) associées aux modèles.
+     *
+     * @var array
      */
-    public function register(): void
-    {
-        //
-    }
+    protected $policies = [
+        Annonce::class => AnnoncePolicy::class, // Enregistrement de la policy pour Annonce
+    ];
 
     /**
-     * Bootstrap any application services.
+     * Enregistre les services pour l'application.
+     *
+     * @return void
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        $this->registerPolicies(); // Enregistrement des politiques par défaut
+
+        // Vous pouvez définir des Gates supplémentaires ici si nécessaire
     }
 }

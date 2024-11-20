@@ -5,90 +5,97 @@ namespace App\Http\Controllers;
 use App\Models\Annonce;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StoreAnnonceRequest;
-use App\Http\Requests\UpdateAnnonceRequest;
-
-use function Termwind\render;
 
 class AnnonceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $annonces = Annonce::all();
-
-        return view('annonces.index', [
-
-            'annonces' => $annonces,
-            'user' => Auth::user()
-        ]);
+        $annonces = Annonce::where('user_id', Auth::id())->get(); // Annonces de l'agent connecté
+        return view('agent.annonces.index', compact('annonces'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-
+        return view('agent.annonces.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-
-
-        // Validation des données d'entrée
-        $validatedData = $request->validate([
-            'image' => 'nullable|string',
+        $request->validate([
             'titre' => 'required|string|max:255',
-            'description' => 'required|text',
-            'prix' => 'required|decimal',
+            'description' => 'required|string',
+            'prix' => 'required|numeric',
             'localisation' => 'required|string',
-
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-        $annonces = Annonce::all();
 
+        $imagesPath = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('public/images');
+                $imagesPath[] = $path;
+            }
+        }
 
-        return view('annonoces', [
-
-            'annonces' => $annonces,
-            'user' => Auth::user()
+        Annonce::create([
+            'user_id' => Auth::id(),
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'prix' => $request->prix,
+            'localisation' => $request->localisation,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'images_path' => json_encode($imagesPath),
         ]);
+
+        return redirect()->route('agent.annonces.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Annonce $annonce)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Annonce $annonce)
     {
-        //
+        return view('agent.annonces.edit', compact('annonce'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateAnnonceRequest $request, Annonce $annonce)
+    public function update(Request $request, Annonce $annonce)
     {
-        //
+        $request->validate([
+            'titre' => 'required|string|max:255',
+            'description' => 'required|string',
+            'prix' => 'required|numeric',
+            'localisation' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $imagesPath = json_decode($annonce->images_path, true) ?: [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('public/images');
+                $imagesPath[] = $path;
+            }
+        }
+
+        $annonce->update([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'prix' => $request->prix,
+            'localisation' => $request->localisation,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'images_path' => json_encode($imagesPath),
+        ]);
+
+        return redirect()->route('agent.annonces.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Annonce $annonce)
     {
-        //
+        $annonce->delete();
+        return redirect()->route('agent.annonces.index');
     }
 }

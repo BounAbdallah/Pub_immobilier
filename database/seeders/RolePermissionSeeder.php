@@ -10,34 +10,34 @@ class RolePermissionSeeder extends Seeder
 {
     public function run()
     {
+        // Define the permissions
         $permissions = [
-            // Permissions générales
             'gérer les utilisateurs',
             'voir statistiques',
-
-            // Permissions pour les agents
+            'voir les annonces',
+            'modifier les annonces',
+            'modifier les roles',
             'créer une annonce',
             'modifier une annonce',
             'supprimer une annonce',
             'voir les demandes',
-
-            // Permissions pour les clients
-            'voir les annonces',
             'faire une demande',
             'contacter un agent',
         ];
 
-        // Créer toutes les permissions si elles n'existent pas déjà
+        // Create permissions if they don't exist
         foreach ($permissions as $permission) {
-            if (!Permission::where('name', $permission)->where('guard_name', 'web')->exists()) {
-                Permission::create(['name' => $permission, 'guard_name' => 'web']);
-            }
+            Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web']
+            );
         }
 
+        // Define the roles and their respective permissions
         $roles = [
             'Admin' => [
                 'gérer les utilisateurs',
                 'voir statistiques',
+                'modifier les roles',
             ],
             'Client' => [
                 'voir les annonces',
@@ -52,13 +52,19 @@ class RolePermissionSeeder extends Seeder
             ],
         ];
 
-        // Créer les rôles et leur attribuer les permissions
+        // Create the roles and assign permissions
         foreach ($roles as $roleName => $permissions) {
+            // Create the role or get it if it exists
             $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-            foreach ($permissions as $permission) {
-                $permissionInstance = Permission::where('name', $permission)->where('guard_name', 'web')->first();
+
+            // Find all permissions first (better performance)
+            $permissionInstances = Permission::whereIn('name', $permissions)->get();
+
+            // Assign each permission to the role
+            foreach ($permissionInstances as $permissionInstance) {
+                // Ensure that the permission exists before assigning it
                 if ($permissionInstance) {
-                    $role->givePermissionTo($permissionInstance);
+                    $role->givePermissionTo($permissionInstance); // Assign the permission to the role
                 }
             }
         }

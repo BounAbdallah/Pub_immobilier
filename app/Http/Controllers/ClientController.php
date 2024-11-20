@@ -2,63 +2,64 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Annonce;
+use App\Models\Demande;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Affiche toutes les annonces pour les clients.
      */
-    public function index()
+    public function indexAnnonces()
+{
+    // Vérifier si l'utilisateur est un client ou un agent
+    $user = Auth::user();
+
+    // Vérifier le rôle de l'utilisateur
+    if ($user->hasRole('client')) {
+        // Si l'utilisateur est un client, récupérer toutes les annonces
+        $annonces = Annonce::all();
+    } elseif ($user->hasRole('agent')) {
+        // Si l'utilisateur est un agent, récupérer uniquement ses propres annonces
+        $annonces = Annonce::where('user_id', $user->id)->get();
+    } else {
+        // Si l'utilisateur n'a pas de rôle valide, rediriger vers une autre page
+        $annonces = collect();
+    }
+
+    // Passer les annonces à la vue
+    return view('client.dashboard', compact('annonces'));
+}
+
+
+    /**
+     * Affiche les détails d'une annonce spécifique.
+     */
+    public function showAnnonce(Annonce $annonce)
     {
-        //
+        return view('client.annonces.show', compact('annonce'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Permet à un client de faire une demande pour une annonce.
      */
-    public function create()
+    public function requestAnnonce(Request $request, Annonce $annonce)
     {
-        //
-    }
+        // Validation de la demande
+        $request->validate([
+            'message' => 'required|string',
+        ]);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // Créer une nouvelle demande
+        Demande::create([
+            'user_id' => Auth::id(),    // ID de l'utilisateur connecté
+            'annonce_id' => $annonce->id,  // ID de l'annonce
+            'message' => $request->message, // Message envoyé
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        // Retourner à la vue précédente avec un message de succès
+        return redirect()->route('client.annonces.index')->with('success', 'Votre demande a été envoyée avec succès.');
     }
 }

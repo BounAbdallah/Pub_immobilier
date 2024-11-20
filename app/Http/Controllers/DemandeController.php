@@ -3,64 +3,59 @@
 namespace App\Http\Controllers;
 
 use App\Models\Demande;
-use App\Http\Requests\StoreDemandeRequest;
-use App\Http\Requests\UpdateDemandeRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DemandeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $demandes = Demande::where('user_id', Auth::id())->get(); // Les demandes pour l'agent connecté
+        return view('agent.demandes.index', compact('demandes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('client.demandes.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreDemandeRequest $request)
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'message' => 'required|string|max:500',
+            'annonce_id' => 'required|exists:annonces,id',
+        ]);
+
+        Demande::create([
+            'user_id' => Auth::id(),
+            'message' => $request->message,
+            'annonce_id' => $request->annonce_id,
+        ]);
+
+        return redirect()->route('client.demandes.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Demande $demande)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Demande $demande)
     {
-        //
+        return view('agent.demandes.edit', compact('demande'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateDemandeRequest $request, Demande $demande)
+    public function update(Request $request, Demande $demande)
     {
-        //
+        $request->validate([
+            'message' => 'required|string|max:500',
+        ]);
+
+        $demande->update([
+            'message' => $request->message,
+        ]);
+
+        return redirect()->route('agent.demandes.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Demande $demande)
     {
-        //
+        $demande->delete();
+        return redirect()->route('agent.demandes.index');
     }
 }

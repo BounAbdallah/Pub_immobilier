@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,30 +9,29 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasRoles;
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasRoles, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Les attributs qui ne peuvent pas être assignés en masse.
      *
      * @var array<int, string>
      */
-    protected $guarded = [];
+    protected $guarded = [
+        'guared', // Ajouter le champ guared ici pour éviter l'assignation en masse
+    ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Les attributs qui doivent être masqués pour la sérialisation.
      *
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password',       // Masquer le mot de passe
+        'remember_token', // Masquer le token de connexion
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Les attributs qui doivent être convertis en types spécifiques.
      *
      * @return array<string, string>
      */
@@ -44,7 +42,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function annonces(){
-        return $this->hasMany(Annonce::class);
+
+    /**
+     * Définir la relation entre l'utilisateur et ses annonces.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function annonces()
+    {
+        return $this->hasMany(Annonce::class); // Un utilisateur peut avoir plusieurs annonces
     }
 }
